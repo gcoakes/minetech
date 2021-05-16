@@ -3,5 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <title>Yew App</title>
+    <style>
+      html, body, canvas {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+      }
+    </style>
   </head>
+  <body>
+    <canvas id="game"></canvas>
+    <script>
+      document.querySelector("#game").onclick = (event) => {
+        event.target.requestPointerLock();
+      };
+    </script>
+  </body>
 </html>
