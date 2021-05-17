@@ -9,6 +9,7 @@ yew = "^0.17"
 js-sys = "^0.3"
 wasm-bindgen = "^0.2"
 bevy_webgl2 = { git = "https://github.com/gcoakes/bevy_webgl2", branch = "winit-update" }
+bevy_advanced_input = { git = "https://github.com/gcoakes/bevy_advanced_input", branch = "no-default-features" }
 
 [dependencies.bevy]
 git = "https://github.com/gcoakes/bevy"
