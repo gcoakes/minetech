@@ -1,4 +1,7 @@
-use std::f32::consts::PI;
+use std::{
+    f32::consts::PI,
+    ops::{Mul, Neg},
+};
 
 use bevy::prelude::*;
 use bevy_advanced_input::{
@@ -62,6 +65,11 @@ fn setup_input(mut input_bindings: ResMut<UserInputHandle<InputType, Bindings>>)
         )
         .add(InputAxisType::KeyboardButton(KeyCode::D), Some(1.0))
         .add(InputAxisType::KeyboardButton(KeyCode::A), Some(-1.0));
+
+    input_set
+        .begin_axis(Bindings::Elevation)
+        .add(InputAxisType::KeyboardButton(KeyCode::E), Some(1.0))
+        .add(InputAxisType::KeyboardButton(KeyCode::Q), Some(-1.0));
 
     input_set
         .begin_axis(Bindings::Pitch)
@@ -141,19 +149,27 @@ fn player_control(
 ) {
     for (mut movement, transform, input_id) in controlled.iter_mut() {
         if let Some(input_handle) = input_bindings.to_handle(input_id) {
-            let walk_unit = {
-                let walk = (transform.rotation * -Vec3::Z).normalize_or_zero();
-                Vec3::new(walk.x, 0.0, walk.z).normalize_or_zero()
-            };
-            let right_unit =
-                (Quat::from_rotation_y(-90.0f32.to_radians()) * walk_unit).normalize_or_zero();
+            let walk_unit = transform
+                .local_z()
+                .mul(Vec3::X + Vec3::Z)
+                .neg()
+                .normalize_or_zero();
+            let right_unit = transform
+                .local_x()
+                .mul(Vec3::X + Vec3::Z)
+                .normalize_or_zero();
             let walkness = input_handle
                 .get_axis_value(Bindings::Longitudinal)
                 .unwrap_or(0.0);
             let rightness = input_handle
                 .get_axis_value(Bindings::Latitudinal)
                 .unwrap_or(0.0);
-            movement.velocity = (walk_unit * walkness + right_unit * rightness).normalize_or_zero();
+            let jumpness = input_handle
+                .get_axis_value(Bindings::Elevation)
+                .unwrap_or(0.0);
+            movement.velocity =
+                (walk_unit * walkness + right_unit * rightness + Vec3::Y * jumpness)
+                    .normalize_or_zero();
 
             let delta = -0.001
                 * input_handle
