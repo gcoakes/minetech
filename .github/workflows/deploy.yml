@@ -1,0 +1,40 @@
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy_pages:
+    name: Deploy Pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+      - name: Download deploy tools
+        run: |
+          test -f trunk \
+          || wget -qO- https://github.com/thedodd/trunk/releases/download/v0.11.0/trunk-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xzv
+          test -d wasm-bindgen-0.2.74-x86_64-unknown-linux-musl \
+          || wget -qO- https://github.com/rustwasm/wasm-bindgen/releases/download/0.2.74/wasm-bindgen-0.2.74-x86_64-unknown-linux-musl.tar.gz \
+            | tar xzv
+      - name: Build pages
+        run: |
+          export PATH="$PATH:$PWD/wasm-bindgen-0.2.74-x86_64-unknown-linux-musl"
+          ./trunk build --release --public-url minetech
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.1
+        with:
+          branch: gh-pages
+          folder: dist
+      - name: Cache rust build artifacts
+        uses: Swatinem/rust-cache@v1
+      - name: Cache deploy tools
+        uses: actions/cache@v2
+        with:
+          path: |
+            trunk
+            wasm-bindgen-0.2.74-x86_64-unknown-linux-musl/
+          key: ${{ runner.os }}-${{ hashFiles('.github/workflows/deploy.yml') }}
