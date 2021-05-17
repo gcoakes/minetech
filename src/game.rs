@@ -86,21 +86,23 @@ fn spawn_scene(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
+    let texture: Handle<Texture> = asset_server.load("dirt.png");
+    let mesh = meshes.add(Mesh::from(shape::Cube { size: 0.45 }));
+    let material = materials.add(StandardMaterial {
+        base_color_texture: Some(texture),
+        base_color: Color::hex("ffffff").unwrap(),
+        metallic: 1.0,
+        roughness: 1.0,
+        ..Default::default()
+    });
+
     for y in -2..=1 {
         for x in -5..=5 {
-            let x01 = (x + 5) as f32 / 10.0;
-            let y01 = (y + 2) as f32 / 4.0;
-            // sphere
             cmds.spawn_bundle(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.45 })),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::hex("ffd891").unwrap(),
-                    // vary key PBR parameters on a grid of spheres to show the effect
-                    metallic: y01,
-                    roughness: x01,
-                    ..Default::default()
-                }),
+                mesh: mesh.clone(),
+                material: material.clone(),
                 transform: Transform::from_xyz(x as f32, y as f32, 0.0),
                 ..Default::default()
             });
